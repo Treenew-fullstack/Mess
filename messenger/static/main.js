@@ -270,61 +270,59 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function addMessage(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message';
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
 
-        const avatarImg = document.createElement('img');
-        avatarImg.src = message.user.avatar || '/media/avatars/default-avatar.jpeg';
-        avatarImg.alt = `${message.user.username}'s avatar`;
-        avatarImg.width = 50;
-        avatarImg.height = 50;
+    const avatarImg = document.createElement('img');
+    avatarImg.src = message.user.avatar || '/media/avatars/default-avatar.jpeg';
+    avatarImg.alt = `${message.user.username}'s avatar`;
+    avatarImg.width = 50;
+    avatarImg.height = 50;
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        contentDiv.innerHTML = `<div class="message-author">${message.user.username}</div><div>${message.content}</div>`;
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.innerHTML = `<div class="message-author">${message.user.username}</div><div>${message.content}</div>`;
 
-        messageDiv.appendChild(avatarImg);
-        messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(avatarImg);
+    messageDiv.appendChild(contentDiv);
 
-        messagesDiv.prepend(messageDiv);
+    messagesDiv.prepend(messageDiv);
+}
+
+function connectWebSocket(chatId) {
+    if (socket) {
+        socket.close();
     }
 
-    function connectWebSocket(chatId) {
-        if (socket) {
-            socket.close();
-        }
+    socket = new WebSocket(`ws://${window.location.hostname}:8001/ws/chat/${chatId}/`);
 
-        socket = new WebSocket(`ws://${window.location.hostname}:8001/ws/chat/${chatId}/`);
+    socket.onopen = function(event) {
+        console.log('WebSocket connection established');
+    };
 
-        socket.onopen = function(event) {
-            console.log('WebSocket connection established');
-        };
-
-        socket.onmessage = function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.user && data.message) {
-                    addMessage({
-                        user: data.user,
-                        content: data.message,
-                    });
-                } else {
-                    console.error('Unexpected message format:', data);
-                }
-             } catch (e) {
-                console.error('Error parsing WebSocket message:', e);
+    socket.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.chat_id === currentChatId) {  // Проверяем ID чата
+                addMessage({
+                    user: data.user,
+                    content: data.message,
+                });
             }
-        };
+        } catch (e) {
+            console.error('Error parsing WebSocket message:', e);
+        }
+    };
 
-        socket.onerror = function(event) {
-            console.error('WebSocket error:', event);
-        };
+    socket.onerror = function(event) {
+        console.error('WebSocket error:', event);
+    };
 
-        socket.onclose = function(event) {
-            console.error('Chat socket closed unexpectedly:', event);
-            setTimeout(() => connectWebSocket(chatId), 5000);
-        };
-    }
+    socket.onclose = function(event) {
+        console.error('Chat socket closed unexpectedly:', event);
+        setTimeout(() => connectWebSocket(chatId), 5000);
+    };
+}
 
     sendButton.addEventListener('click', function() {
         const message = messageInput.value.trim();
@@ -337,5 +335,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    fetchCurrentUser(); // Инициализация профиля
+    fetchCurrentUser(); 
 });

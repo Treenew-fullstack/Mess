@@ -75,6 +75,7 @@ SIMPLE_JWT = {
 
 ASGI_APPLICATION = 'messenger.asgi.application'
 
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
@@ -84,8 +85,6 @@ CHANNEL_LAYERS = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-
 
 
 MIDDLEWARE = [
